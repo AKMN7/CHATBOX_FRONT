@@ -43,12 +43,40 @@
 		</div>
 
 		<div
+			@click="createNewInvite"
 			class="flex items-center justify-center space-x-2 tracking-wider py-3 rounded-lg cursor-pointer text-lightestGrey bg-grey hover:bg-lightGrey hover:text-white">
 			<span class="material-icons">add</span>
 			<span>Add Contact</span>
 		</div>
 	</div>
 </template>
+
+<script>
+	import { useMainStore } from "../../stores/main";
+	import toaster from "../../utils/toast";
+	import { inject } from "vue";
+
+	export default {
+		setup() {
+			const store = useMainStore();
+			const swal = inject("$swal");
+
+			async function createNewInvite() {
+				let input = await toaster.textInputPopUp(swal, "Send Invitation", "Enter recipent email...");
+				if (input) {
+					try {
+						await store.createInvitation(input);
+						toaster.fireToast(swal, true, "Invitation Sent, you can view your previous invitations at your profile page!", 5000);
+					} catch (error) {
+						toaster.fireToast(swal, false, error.message);
+					}
+				}
+			}
+
+			return { createNewInvite };
+		},
+	};
+</script>
 
 <style scoped>
 	.wrapper {
