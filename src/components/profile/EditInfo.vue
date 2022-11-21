@@ -12,12 +12,12 @@
 			<input
 				class="w-full px-4 py-3 rounded-lg font-bold text-black bg-gray-100 border border-gray-200 placeholder-lightestGrey text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
 				type="email"
-				placeholder="Email"
+				:placeholder="email"
 				:disabled="edit" />
 			<input
 				class="w-full px-4 py-3 rounded-lg font-bold text-black bg-gray-100 border border-gray-200 placeholder-lightestGrey text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5"
 				type="text"
-				placeholder="Full Name"
+				:placeholder="name"
 				:disabled="edit" />
 			<div class="wrapper mt-5">
 				<div class="search-input">
@@ -56,6 +56,7 @@
 	import { ref } from "vue";
 
 	export default {
+		props: ["name", "email"],
 		setup() {
 			let mode = ref("general");
 			let edit = ref(true);

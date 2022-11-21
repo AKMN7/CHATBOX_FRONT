@@ -20,10 +20,8 @@
 		},
 		created() {
 			if (this.$props.userImage) {
-				//console.log("Props Passed");
 				this.selectedFile = this.$props.userImage;
 			} else {
-				//console.log("Props Did Not Passed");
 				this.selectedFile =
 					"https://cahsi.utep.edu/wp-content/uploads/kisspng-computer-icons-user-clip-art-user-5abf13db5624e4.1771742215224718993529.png";
 			}

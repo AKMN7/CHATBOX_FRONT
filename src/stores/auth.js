@@ -1,5 +1,6 @@
 import axios from "axios";
 import { defineStore } from "pinia";
+import { useMainStore } from "./main";
 
 // const API = import.meta.env.API_URL;
 const API = "http://localhost:3000/api/v1";
@@ -10,6 +11,7 @@ export const useAuthStore = defineStore("auth", {
 			token: null,
 			email: null,
 			name: null,
+			profilePic: null,
 		};
 	},
 	getters: {
@@ -17,6 +19,9 @@ export const useAuthStore = defineStore("auth", {
 	},
 	actions: {
 		async signIn(payload) {
+			// Main Store to fetch user data
+			const store = useMainStore();
+
 			const EndPoint = API + "/users/signin";
 
 			const data = {
@@ -33,16 +38,22 @@ export const useAuthStore = defineStore("auth", {
 			this.token = response.data.token;
 			this.email = response.data.data.user.email;
 			this.name = response.data.data.user.name;
+			this.profilePic = response.data.data.user.profilePic;
 
 			// Store use to the local storage
 			localStorage.setItem("token", this.token);
 			localStorage.setItem("email", this.email);
 			localStorage.setItem("name", this.name);
+			localStorage.setItem("profilePic", this.profilePic);
 
 			//Todo Get Data (Chats and onpen websockets)
+			await store.fetchInvites(); //TODO => REPLACE WITH GET DATA
 		},
 
 		async signUp(payload) {
+			// Main Store to fetch user data
+			const store = useMainStore();
+
 			const EndPoint = API + "/users/signup";
 
 			const data = {
@@ -60,11 +71,16 @@ export const useAuthStore = defineStore("auth", {
 			this.token = response.data.token;
 			this.email = response.data.data.user.email;
 			this.name = response.data.data.user.name;
+			this.profilePic = response.data.data.user.profilePic;
 
 			//Todo Get Data (Chats and onpen websockets)
+			await store.fetchInvites(); //TODO => REPLACE WITH GET DATA
 		},
 
 		async googleAuth(payload) {
+			// Main Store to fetch user data
+			const store = useMainStore();
+
 			// API END POINT
 			const googleAuthGateAway = API + "/users/google";
 
@@ -79,25 +95,34 @@ export const useAuthStore = defineStore("auth", {
 			this.token = response.data.token;
 			this.email = response.data.data.user.email;
 			this.name = response.data.data.user.name;
+			this.profilePic = response.data.data.user.profilePic;
 
 			// Store use to the local storage
 			localStorage.setItem("token", this.token);
 			localStorage.setItem("email", this.email);
 			localStorage.setItem("name", this.name);
+			localStorage.setItem("profilePic", this.profilePic);
 
 			// Fetch New data
 			//Todo Get Data (Chats and onpen websockets)
+			await store.fetchInvites(); //TODO => REPLACE WITH GET DATA
 
 			if (payload.type === "SignUp") return response.data.specialMSG;
 		},
 
 		logout() {
+			// Main Store to Reset user data
+			const store = useMainStore();
+
 			// Clear the localStorage
 			localStorage.clear();
 			// Clear the Current State
 			this.token = null;
 			this.email = null;
 			this.name = null;
+			this.profilePic = null;
+
+			store.resetStore();
 		},
 
 		autoSignIn() {
@@ -105,11 +130,13 @@ export const useAuthStore = defineStore("auth", {
 			const token = localStorage.getItem("token");
 			const email = localStorage.getItem("email");
 			const name = localStorage.getItem("name");
+			const profilePic = localStorage.getItem("profilePic");
 
-			if (token && email && name) {
+			if (token && email && name && profilePic) {
 				this.token = token;
 				this.email = email;
 				this.name = email;
+				this.profilePic = profilePic;
 
 				return true;
 			}
