@@ -7,7 +7,7 @@
 			</button>
 		</div>
 
-		<the-links />
+		<the-links :chats="mainStore.getChats" />
 
 		<div class="w-full flex flex-col pt-4 space-y-3 border-t border-t-black dark:border-t-white">
 			<dark-theme-toggle />
@@ -20,6 +20,7 @@
 	import TheLinks from "./TheLinks.vue";
 	import LogOutBtn from "./LogOutBtn.vue";
 	import DarkThemeToggle from "./DarkThemeToggle.vue";
+	import { useMainStore } from "../../stores/main";
 	export default {
 		components: {
 			TheLinks,
@@ -27,8 +28,9 @@
 			DarkThemeToggle,
 		},
 		setup() {
+			const mainStore = useMainStore();
 			const toggleMenuOpen = () => document.body.classList.toggle("open");
-			return { toggleMenuOpen };
+			return { toggleMenuOpen, mainStore };
 		},
 	};
 </script>

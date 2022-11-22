@@ -1,5 +1,9 @@
 <template>
-	<div class="chat-room">
+	<div v-if="chatID == 'nochats'" class="noChats">
+		<img src="../../assets/no_chats.svg" alt="No Chats" />
+		<h1 class="text-xl text-center">Looks like you don't have any chats yet. Add a new contact to get started!</h1>
+	</div>
+	<div v-else class="chat-room">
 		<div class="chat-list">
 			<div class="mx-2 my-6 text-center">
 				<p class="px-2 py-1 bg-darkGrey text-white text-sm w-fit m-auto rounded-lg dark:bg-white dark:text-darkGrey">
@@ -59,25 +63,30 @@
 					type="text"
 					placeholder="Start typing your message..."
 					class="bg-lightestGrey text-black dark:bg-white dark:text-darkGrey" />
-				<!-- <span class="material-icons icon" @click="store.increment()">send</span> -->
-				<span class="material-icons icon" @click="add100">send</span>
+				<span class="material-icons icon">send</span>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
-	import { useAuthStore } from "../../stores/auth";
-
+	import { useRoute } from "vue-router";
+	import { useMainStore } from "../../stores/main";
 	export default {
 		setup() {
-			const store = useAuthStore();
+			const store = useMainStore();
+			const route = useRoute();
+			let chatID = route.params.chatID;
 
-			const add100 = () => store.$patch({ counter: store.counter + 100 });
+			// Update Header Title
+			if (chatID !== "nochats") {
+				let chatUserInfo = store.getChats.filter((el) => el.id == chatID)[0];
+				if (chatUserInfo) {
+					store.updateCurrentChat({ name: chatUserInfo.name, profilePic: chatUserInfo.profilePic });
+				}
+			}
 
-			console.log("Entered");
-
-			return { store, add100 };
+			return { chatID };
 		},
 	};
 </script>
@@ -177,5 +186,20 @@
 		border-bottom-left-radius: 8px;
 		border-bottom-right-radius: 8px;
 		align-self: flex-end;
+	}
+
+	.noChats {
+		height: calc(100vh - 100px);
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.noChats img {
+		max-height: 25rem;
+		max-width: 90%;
+		margin-bottom: 2rem;
 	}
 </style>

@@ -35,10 +35,12 @@
 
 					try {
 						//TODO => REPLACE WITH GET DATA
-						await this.mainStore.fetchInvites();
+						await this.mainStore.fetchUserData();
+						// await this.mainStore.fetchInvites();
 						socket.auth = { token: this.authStore.token };
 						socket.connect();
-						this.$router.replace("/app/aljsdf098098");
+						let toChat = this.mainStore.getChats.length ? this.mainStore.getChats[0].id : "nochats";
+						this.$router.replace(`/app/${toChat}`);
 					} catch (error) {
 						toaster.fireToast(this.$swal, false, error.message);
 					}

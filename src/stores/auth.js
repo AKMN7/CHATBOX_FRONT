@@ -47,7 +47,7 @@ export const useAuthStore = defineStore("auth", {
 			localStorage.setItem("profilePic", this.profilePic);
 
 			//Todo Get Data (Chats and onpen websockets)
-			await store.fetchInvites(); //TODO => REPLACE WITH GET DATA
+			await store.fetchUserData(); //TODO => REPLACE WITH GET DATA
 		},
 
 		async signUp(payload) {
@@ -74,7 +74,7 @@ export const useAuthStore = defineStore("auth", {
 			this.profilePic = response.data.data.user.profilePic;
 
 			//Todo Get Data (Chats and onpen websockets)
-			await store.fetchInvites(); //TODO => REPLACE WITH GET DATA
+			await store.fetchUserData(); //TODO => REPLACE WITH GET DATA
 		},
 
 		async googleAuth(payload) {
@@ -105,7 +105,7 @@ export const useAuthStore = defineStore("auth", {
 
 			// Fetch New data
 			//Todo Get Data (Chats and onpen websockets)
-			await store.fetchInvites(); //TODO => REPLACE WITH GET DATA
+			await store.fetchUserData(); //TODO => REPLACE WITH GET DATA
 
 			if (payload.type === "SignUp") return response.data.specialMSG;
 		},
@@ -135,7 +135,7 @@ export const useAuthStore = defineStore("auth", {
 			if (token && email && name && profilePic) {
 				this.token = token;
 				this.email = email;
-				this.name = email;
+				this.name = name;
 				this.profilePic = profilePic;
 
 				return true;

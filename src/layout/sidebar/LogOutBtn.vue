@@ -20,7 +20,7 @@
 			const swal = inject("$swal");
 
 			function logOut() {
-				swal.fire(toaster.logOutPopUpOptions()).then((result) => {
+				swal.fire(toaster.confirmPopUpOptions("Logout", "Are you sure you want to logout?")).then((result) => {
 					if (result.isConfirmed) {
 						store.logout();
 						socket.disconnect();

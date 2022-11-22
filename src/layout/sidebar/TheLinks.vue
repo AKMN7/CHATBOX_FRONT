@@ -8,37 +8,17 @@
 		</div>
 
 		<div class="my-4 w-full">
-			<p class="font-bold tracking-wider my-2">Contacts (5)</p>
+			<p class="font-bold tracking-wider my-2">Contacts ({{ chats.length }})</p>
 			<div class="link-list">
 				<router-link
-					to="/app/aljsdf098098"
+					v-for="chat in chats"
+					:key="chat.id"
+					:to="`/app/${chat.id}`"
 					class="sideBarLink flex items-center py-2 px-3 mb-2 mr-2 cursor-pointer rounded-lg text-lightestGrey hover:bg-black hover:text-white">
-					<img src="../../assets/person1.jpg" alt="user" class="h-9 w-9 rounded-lg mr-4" />
-					<p class="tracking-wide mr-auto">Alex Suprun</p>
-					<span class="material-icons hidden" title="Delete">delete</span>
+					<img :src="chat.profilePic" alt="user" class="h-9 w-9 rounded-lg mr-4" />
+					<p class="tracking-wide mr-auto">{{ chat.name }}</p>
+					<span class="material-icons hidden" title="Delete" @click="deleteChat(chat.id)">delete</span>
 				</router-link>
-				<router-link
-					to="/app/alkjsdfasdfoiu"
-					class="sideBarLink flex items-center py-2 px-3 mb-2 mr-2 cursor-pointer rounded-lg text-lightestGrey hover:bg-black hover:text-white">
-					<img src="../../assets/person2.jpg" alt="user" class="h-9 w-9 rounded-lg mr-4" />
-					<p class="tracking-wide mr-auto">Nicolas Horn</p>
-					<span class="material-icons hidden">delete</span>
-				</router-link>
-				<a
-					class="flex items-center space-x-4 py-2 px-3 mb-2 mr-2 cursor-pointer rounded-lg text-lightestGrey hover:bg-black hover:text-white">
-					<img src="../../assets/person3.jpg" alt="user" class="h-9 w-9 rounded-lg" />
-					<p class="tracking-wide">Joh Doe</p>
-				</a>
-				<a
-					class="flex items-center space-x-4 py-2 px-3 mb-2 mr-2 cursor-pointer rounded-lg text-lightestGrey hover:bg-black hover:text-white">
-					<img src="../../assets/person4.jpg" alt="user" class="h-9 w-9 rounded-lg" />
-					<p class="tracking-wide">Julian Wan</p>
-				</a>
-				<a
-					class="flex items-center space-x-4 py-2 px-3 mb-2 mr-2 cursor-pointer rounded-lg text-lightestGrey hover:bg-black hover:text-white">
-					<img src="../../assets/person6.jpg" alt="user" class="h-9 w-9 rounded-lg" />
-					<p class="tracking-wide">Diego Armando</p>
-				</a>
 			</div>
 		</div>
 
@@ -54,11 +34,14 @@
 <script>
 	import { useMainStore } from "../../stores/main";
 	import toaster from "../../utils/toast";
+	import { useRouter } from "vue-router";
 	import { inject } from "vue";
 
 	export default {
+		props: ["chats"],
 		setup() {
 			const store = useMainStore();
+			const router = useRouter();
 			const swal = inject("$swal");
 
 			async function createNewInvite() {
@@ -73,7 +56,25 @@
 				}
 			}
 
-			return { createNewInvite };
+			async function deleteChat(id) {
+				console.log(id);
+				swal
+					.fire(toaster.confirmPopUpOptions("Delete Contact", "Are you sure you want to delete this contact?"))
+					.then(async (result) => {
+						if (result.isConfirmed) {
+							try {
+								await store.deleteChat(id);
+								toaster.fireToast(swal, true, "Contact Deleted Succssfully");
+								let toChat = store.getChats.length ? store.getChats[0].id : "nochats";
+								router.replace(`/app/${toChat}`);
+							} catch (error) {
+								toaster.fireToast(swal, false, error.message);
+							}
+						}
+					});
+			}
+
+			return { createNewInvite, deleteChat };
 		},
 	};
 </script>

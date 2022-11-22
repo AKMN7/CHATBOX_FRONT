@@ -23,6 +23,7 @@
 		setup() {
 			const authStore = useAuthStore();
 			const mainStore = useMainStore();
+			mainStore.updateCurrentChat({ name: "Profile", profilePic: authStore.profilePic });
 			return { authStore, mainStore };
 		},
 	};

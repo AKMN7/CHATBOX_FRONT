@@ -9,6 +9,7 @@ export const useMainStore = defineStore("main", {
 		return {
 			chats: [],
 			invites: [],
+			currentChat: null,
 		};
 	},
 	getters: {
@@ -16,6 +17,64 @@ export const useMainStore = defineStore("main", {
 		getInvites: (state) => state.invites,
 	},
 	actions: {
+		async fetchUserData() {
+			// Fetch All Data -> chats & invites & currentChat
+			await Promise.all([this.fetchChats(), this.fetchInvites()]).catch(function (error) {
+				throw new Error(error.response.data.msg);
+			});
+			this.updateCurrentChat(this.chats[0]);
+
+			console.log("*** USER DATA ***");
+			console.log("chats ->", this.chats);
+			console.log("invites ->", this.invites);
+		},
+
+		async fetchChats() {
+			//Get Token
+			const authStore = useAuthStore();
+			const token = authStore.token;
+
+			const EndPoint = API + "/users/getChats";
+
+			// Send HTTP Get Reques
+			const response = await axios.get(EndPoint, { headers: { Authorization: `Bearer ${token}` } }).catch(function (error) {
+				throw new Error(error.response.data.msg);
+			});
+
+			this.chats = response.data.data.chats;
+		},
+
+		async deleteChat(payload) {
+			//Get Token
+			const authStore = useAuthStore();
+			const token = authStore.token;
+
+			const EndPoint = API + "/users/deleteChat/" + payload;
+
+			// Send HTTP Post Reques
+			await axios.delete(EndPoint, { headers: { Authorization: `Bearer ${token}` } }).catch(function (error) {
+				throw new Error(error.response.data.msg);
+			});
+
+			// Fetch New Chats Array
+			await this.fetchChats();
+		},
+
+		async fetchInvites() {
+			//Get Token
+			const authStore = useAuthStore();
+			const token = authStore.token;
+
+			const EndPoint = API + "/users/getInvites";
+
+			// Send HTTP Get Reques
+			const response = await axios.get(EndPoint, { headers: { Authorization: `Bearer ${token}` } }).catch(function (error) {
+				throw new Error(error.response.data.msg);
+			});
+
+			this.invites = response.data.data.invites;
+		},
+
 		async createInvitation(payload) {
 			//Get Token
 			const authStore = useAuthStore();
@@ -31,28 +90,61 @@ export const useMainStore = defineStore("main", {
 			await axios.post(EndPoint, data, { headers: { Authorization: `Bearer ${token}` } }).catch(function (error) {
 				throw new Error(error.response.data.msg);
 			});
+
+			// Fetch New Invites Array
+			await this.fetchInvites();
 		},
-		async fetchInvites() {
-			console.log("Entered Fetch Invites");
+
+		async updateInvite(payload) {
 			//Get Token
 			const authStore = useAuthStore();
 			const token = authStore.token;
 
-			const EndPoint = API + "/users/getInvites";
+			const EndPoint = API + "/users/updateInvite";
 
-			// Send HTTP Get Reques
-			const response = await axios.get(EndPoint, { headers: { Authorization: `Bearer ${token}` } }).catch(function (error) {
+			const data = {
+				inviteID: payload.id,
+				newStatus: payload.status,
+			};
+
+			// Send HTTP Post Reques
+			await axios.patch(EndPoint, data, { headers: { Authorization: `Bearer ${token}` } }).catch(function (error) {
 				throw new Error(error.response.data.msg);
 			});
 
-			this.invites = response.data.data.invites;
+			// Fetch New Invites Array
+			await this.fetchUserData();
+		},
 
-			console.log("This is the invites", this.invites);
+		async deleteInvite(payload) {
+			//Get Token
+			const authStore = useAuthStore();
+			const token = authStore.token;
+
+			const EndPoint = API + "/users/deleteInvite";
+
+			// Send HTTP Post Reques
+			await axios
+				.post(EndPoint, { inviteID: payload }, { headers: { Authorization: `Bearer ${token}` } })
+				.catch(function (error) {
+					throw new Error(error.response.data.msg);
+				});
+
+			// Fetch New Invites Array
+			await this.fetchInvites();
+		},
+
+		updateCurrentChat(payload) {
+			this.currentChat = {
+				name: payload.name,
+				profilePic: payload.profilePic,
+			};
 		},
 
 		resetStore() {
 			this.invites = [];
 			this.chats = [];
+			this.currentChat = null;
 		},
 	},
 });
