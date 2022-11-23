@@ -27,18 +27,22 @@
 		computed: {
 			...mapStores(useAuthStore, useMainStore),
 		},
-		async mounted() {
+		async created() {
 			try {
 				if (this.authStore.autoSignIn()) {
 					console.log("USER FOUND!");
 					this.isLoading = true;
 
 					try {
-						//TODO => REPLACE WITH GET DATA
+						//GET USER DATA
 						await this.mainStore.fetchUserData();
-						// await this.mainStore.fetchInvites();
+						// Establish a socket connection
+						socket.disconnect();
 						socket.auth = { token: this.authStore.token };
 						socket.connect();
+						// Emit Online Status
+						socket.emit("online", this.mainStore.chats);
+						// Route to the first chat
 						let toChat = this.mainStore.getChats.length ? this.mainStore.getChats[0].id : "nochats";
 						this.$router.replace(`/app/${toChat}`);
 					} catch (error) {
@@ -53,6 +57,9 @@
 			} catch (error) {
 				console.log("*** App Error ***", error);
 			}
+		},
+		beforeUnmount() {
+			socket.disconnect();
 		},
 	};
 </script>

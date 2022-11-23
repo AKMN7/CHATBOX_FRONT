@@ -15,9 +15,13 @@
 					:key="chat.id"
 					:to="`/app/${chat.id}`"
 					class="sideBarLink flex items-center py-2 px-3 mb-2 mr-2 cursor-pointer rounded-lg text-lightestGrey hover:bg-black hover:text-white">
-					<img :src="chat.profilePic" alt="user" class="h-9 w-9 rounded-lg mr-4" />
+					<div class="relative h-10 w-10 mr-4">
+						<img :src="chat.profilePic" alt="user" class="h-9 w-9 rounded-lg" />
+						<span class="online" v-if="store.getChatsById(chat.id).isOnline"></span>
+					</div>
 					<p class="tracking-wide mr-auto">{{ chat.name }}</p>
 					<span class="material-icons hidden" title="Delete" @click="deleteChat(chat.id)">delete</span>
+					<span class="newMessages" v-if="store.unReadMessages[chat.id]"></span>
 				</router-link>
 			</div>
 		</div>
@@ -74,7 +78,7 @@
 					});
 			}
 
-			return { createNewInvite, deleteChat };
+			return { createNewInvite, deleteChat, store };
 		},
 	};
 </script>
@@ -145,5 +149,26 @@
 
 	.sideBarLink:hover span {
 		display: inline-block;
+	}
+
+	.sideBarLink:hover .newMessages {
+		display: none;
+	}
+
+	.newMessages {
+		border: 1px solid rgb(243, 27, 27);
+		background-color: rgb(243, 27, 27);
+		padding: 5px;
+		border-radius: 50%;
+	}
+
+	.online {
+		border: 1px solid white;
+		background-color: rgb(123, 201, 7);
+		padding: 5px;
+		border-radius: 50%;
+		position: absolute;
+		top: -4px;
+		right: 0px;
 	}
 </style>

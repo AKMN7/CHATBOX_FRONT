@@ -58,13 +58,16 @@
 	import { ref, inject } from "vue";
 	import toaster from "../../utils/toast";
 	import GoogleSVG from "../../assets/googleSVG.vue";
+	import socket from "../../utils/socket";
+	import { useMainStore } from "../../stores/main";
 
 	export default {
 		components: {
 			GoogleSVG,
 		},
 		setup() {
-			const store = useAuthStore();
+			const authStore = useAuthStore();
+			const mainStore = useMainStore();
 			const router = useRouter();
 			const swal = inject("$swal");
 
@@ -81,13 +84,20 @@
 				isLoading.value = true;
 
 				try {
-					await store.signIn(data);
+					await authStore.signIn(data);
 					toaster.fireToast(swal, true, "Sign In Sucess");
+					// Establish a socket connection
+					socket.disconnect();
+					socket.auth = { token: authStore.token };
+					socket.connect();
+					// Emit Online Status
+					socket.emit("online", mainStore.getChats);
 					setTimeout(() => {
-						//TODO: Navigate to the latest chat
-						router.replace("/app/aljdsfa23490");
+						let toChat = mainStore.getChats.length ? mainStore.getChats[0].id : "nochats";
+						router.replace(`/app/${toChat}`);
 					}, 2000);
 				} catch (err) {
+					console.log(err);
 					toaster.fireToast(swal, false, err.message);
 				}
 
@@ -97,11 +107,17 @@
 			async function callBack(response) {
 				const data = { token: response.access_token, type: "SignIn" };
 				try {
-					const returnedMSG = await store.googleAuth(data);
-					toaster.fireToast(swal, true, returnedMSG);
+					const returnedMSG = await authStore.googleAuth(data);
+					toaster.fireToast(swal, true, returnedMSG || "Sign In Sucess");
+					// Establish a socket connection
+					socket.disconnect();
+					socket.auth = { token: authStore.token };
+					socket.connect();
+					// Emit Online Status
+					socket.emit("online", mainStore.getChats);
 					setTimeout(() => {
-						//TODO: Navigate to the latest chat
-						router.replace("/app/aljdsfa23490");
+						let toChat = mainStore.getChats.length ? mainStore.getChats[0].id : "nochats";
+						router.replace(`/app/${toChat}`);
 					}, 2000);
 				} catch (err) {
 					toaster.fireToast(swal, false, err.message);

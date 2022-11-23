@@ -11,11 +11,11 @@
 				</p>
 			</div>
 			<div class="day-chat flex flex-col space-y-4">
-				<div class="message-sent space-y-1 bg-zinc-800 text-white">
+				<div class="messageSent space-y-1">
 					<p class="text-left self-start leading-8">Lorem ipsum dolor, sit amet consectetur adipisicing elit.</p>
 					<p class="text-right self-end text-xs">8:11 PM</p>
 				</div>
-				<div class="message-recieved space-y-1 bg-lightGrey text-white">
+				<div class="messageRecieved space-y-1">
 					<p class="text-left self-start leading-8">
 						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Unde repellat aut, sequi voluptate maiores quis odio non cum
 						corporis, quas distinctio hic? Necessitatibus, dolore saepe? Ab vitae veritatis quaerat error?
@@ -26,32 +26,10 @@
 			<div class="mx-2 my-6 text-center">
 				<p class="px-2 py-1 bg-darkGrey text-white text-sm w-fit m-auto rounded-lg dark:bg-white dark:text-darkGrey">Today</p>
 			</div>
-			<div class="day-chat flex flex-col space-y-4">
-				<div class="message-sent space-y-1 bg-zinc-800 text-white">
+			<div v-for="message in mainStore.messages[chatID]" :key="message.msgText" class="day-chat flex flex-col space-y-4">
+				<div class="space-y-1" :class="{ messageSent: !message.selfSend, messageRecieved: message.selfSend }">
 					<p class="text-left self-start leading-8">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Aspernatur officia autem inventore sunt eum pariatur tempora
-						voluptatibus dolores molestiae?
-					</p>
-					<p class="text-right self-end text-xs">8:11 PM</p>
-				</div>
-				<div class="message-recieved space-y-1 bg-lightGrey text-white">
-					<p class="text-left self-start leading-8">
-						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Unde repellat aut, sequi voluptate maiores quis odio non cum
-						corporis, quas distinctio hic? Necessitatibus, dolore saepe? Ab vitae veritatis quaerat error?
-					</p>
-					<p class="text-right self-end text-xs">8:38 PM</p>
-				</div>
-				<div class="message-recieved space-y-1 bg-lightGrey text-white">
-					<p class="text-left self-start leading-8">
-						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Unde repellat aut, sequi voluptate maiores quis odio non cum
-						corporis, quas distinctio hic? Necessitatibus, dolore saepe? Ab vitae veritatis quaerat error?
-					</p>
-					<p class="text-right self-end text-xs">8:38 PM</p>
-				</div>
-				<div class="message-sent space-y-1 bg-zinc-800 text-white">
-					<p class="text-left self-start leading-8">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum quisquam, facilis quaerat enim excepturi totam modi culpa
-						laudantium dolores voluptate dicta nemo tenetur porro doloremque tempore veniam neque! Ex, labore!
+						{{ message.msgText }}
 					</p>
 					<p class="text-right self-end text-xs">8:11 PM</p>
 				</div>
@@ -60,33 +38,44 @@
 		<div class="wrapper">
 			<div class="search-input">
 				<input
+					v-model="msgText"
 					type="text"
 					placeholder="Start typing your message..."
 					class="bg-lightestGrey text-black dark:bg-white dark:text-darkGrey" />
-				<span class="material-icons icon">send</span>
+				<span class="material-icons icon" @click="sendMessage">send</span>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
+	import { ref } from "@vue/reactivity";
 	import { useRoute } from "vue-router";
 	import { useMainStore } from "../../stores/main";
+	import socket from "../../utils/socket";
 	export default {
 		setup() {
-			const store = useMainStore();
+			const mainStore = useMainStore();
 			const route = useRoute();
 			let chatID = route.params.chatID;
 
+			mainStore.unReadMessages[chatID] = false;
+
 			// Update Header Title
 			if (chatID !== "nochats") {
-				let chatUserInfo = store.getChats.filter((el) => el.id == chatID)[0];
+				let chatUserInfo = mainStore.getChats.filter((el) => el.id == chatID)[0];
 				if (chatUserInfo) {
-					store.updateCurrentChat({ name: chatUserInfo.name, profilePic: chatUserInfo.profilePic });
+					mainStore.updateCurrentChat({ name: chatUserInfo.name, profilePic: chatUserInfo.profilePic });
 				}
 			}
 
-			return { chatID };
+			// Sending A Message By Emiting it throught SocketIo from the server
+			let msgText = ref("");
+			function sendMessage() {
+				if (msgText.value !== "") socket.emit("send-msg", chatID, msgText.value);
+			}
+
+			return { chatID, mainStore, msgText, sendMessage };
 		},
 	};
 </script>
@@ -165,27 +154,31 @@
 		border-radius: 8px;
 	}
 
-	.message-recieved,
-	.message-sent {
+	.messageRecieved,
+	.messageSent {
 		width: fit-content;
 		max-width: 60vw;
 		padding: 12px;
 		display: flex;
 		flex-direction: column;
+		color: white;
+		margin-top: 15px;
 	}
 
-	.message-sent {
+	.messageSent {
 		border-top-right-radius: 8px;
 		border-bottom-right-radius: 8px;
 		border-bottom-left-radius: 8px;
 		align-self: flex-start;
+		background-color: rgb(39, 39, 42);
 	}
 
-	.message-recieved {
+	.messageRecieved {
 		border-top-left-radius: 8px;
 		border-bottom-left-radius: 8px;
 		border-bottom-right-radius: 8px;
 		align-self: flex-end;
+		background-color: rgb(119, 119, 119);
 	}
 
 	.noChats {

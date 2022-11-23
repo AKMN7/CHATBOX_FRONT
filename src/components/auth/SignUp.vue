@@ -66,7 +66,7 @@
 			GoogleSVG,
 		},
 		setup() {
-			const store = useAuthStore();
+			const authStore = useAuthStore();
 			const router = useRouter();
 			const swal = inject("$swal");
 
@@ -87,11 +87,14 @@
 				isLoading.value = true;
 
 				try {
-					await store.signUp(data);
+					await authStore.signUp(data);
 					toaster.fireToast(swal, true, "Sign Up Sucess");
+					// Establish a socket connection
+					socket.disconnect();
+					socket.auth = { token: authStore.token };
+					socket.connect();
 					setTimeout(() => {
-						//TODO: Navigate to the latest chat
-						router.replace("/app/aljdsfa23490");
+						router.replace(`/app/nochats`);
 					}, 2000);
 				} catch (err) {
 					toaster.fireToast(swal, false, err.message);
@@ -103,11 +106,14 @@
 			async function callBack(response) {
 				const data = { token: response.access_token, type: "SignUp" };
 				try {
-					const returnedMSG = await store.googleAuth(data);
+					const returnedMSG = await authStore.googleAuth(data);
 					toaster.fireToast(swal, true, returnedMSG);
+					// Establish a socket connection
+					socket.disconnect();
+					socket.auth = { token: authStore.token };
+					socket.connect();
 					setTimeout(() => {
-						//TODO: Navigate to the latest chat
-						router.replace("/app/aljdsfa23490");
+						router.replace(`/app/nochats`);
 					}, 2000);
 				} catch (err) {
 					toaster.fireToast(swal, false, err.message);

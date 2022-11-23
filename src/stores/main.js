@@ -9,12 +9,20 @@ export const useMainStore = defineStore("main", {
 		return {
 			chats: [],
 			invites: [],
+			messages: [],
+			unReadMessages: [],
 			currentChat: null,
 		};
 	},
 	getters: {
 		getChats: (state) => state.chats,
 		getInvites: (state) => state.invites,
+		getMessagesById: (state) => {
+			return (id) => state.messages[id];
+		},
+		getChatsById: (state) => {
+			return (id) => state.chats.find((el) => el.id == id);
+		},
 	},
 	actions: {
 		async fetchUserData() {
@@ -22,7 +30,7 @@ export const useMainStore = defineStore("main", {
 			await Promise.all([this.fetchChats(), this.fetchInvites()]).catch(function (error) {
 				throw new Error(error.response.data.msg);
 			});
-			this.updateCurrentChat(this.chats[0]);
+			this.updateCurrentChat(this.chats[0] ? this.chats[0] : { name: "No Chats", profilePic: "----" });
 
 			console.log("*** USER DATA ***");
 			console.log("chats ->", this.chats);
@@ -41,7 +49,15 @@ export const useMainStore = defineStore("main", {
 				throw new Error(error.response.data.msg);
 			});
 
+			// Set the Chats
 			this.chats = response.data.data.chats;
+
+			// Set the messages and unReadMessages stauts for chats
+			this.chats.forEach((el) => {
+				el.isOnline = false;
+				this.messages[el.id] = [];
+				this.unReadMessages[el.id] = false;
+			});
 		},
 
 		async deleteChat(payload) {
