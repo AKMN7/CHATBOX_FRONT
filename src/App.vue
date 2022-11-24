@@ -1,6 +1,6 @@
 <template>
 	<the-loader v-if="isLoading" />
-	<router-view v-slot="slotProps">
+	<router-view v-slot="slotProps" v-if="!isLoading">
 		<transition name="route" mode="out-in">
 			<component :is="slotProps.Component"></component>
 		</transition>
@@ -43,9 +43,10 @@
 						// Emit Online Status
 						socket.emit("online", this.mainStore.chats);
 						// Route to the first chat
-						let toChat = this.mainStore.getChats.length ? this.mainStore.getChats[0].id : "nochats";
+						let toChat = this.mainStore.getFirstChat ? this.mainStore.getFirstChat : "nochats";
 						this.$router.replace(`/app/${toChat}`);
 					} catch (error) {
+						console.log("*** App Error ***", error);
 						toaster.fireToast(this.$swal, false, error.message);
 					}
 

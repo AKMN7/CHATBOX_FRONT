@@ -5,7 +5,7 @@
 	</div>
 	<div v-else class="chat-room">
 		<div class="chat-list">
-			<div class="mx-2 my-6 text-center">
+			<!-- <div class="mx-2 my-6 text-center">
 				<p class="px-2 py-1 bg-darkGrey text-white text-sm w-fit m-auto rounded-lg dark:bg-white dark:text-darkGrey">
 					Nov 9, 2022
 				</p>
@@ -22,16 +22,16 @@
 					</p>
 					<p class="text-right self-end text-xs">8:38 PM</p>
 				</div>
-			</div>
+			</div> -->
 			<div class="mx-2 my-6 text-center">
 				<p class="px-2 py-1 bg-darkGrey text-white text-sm w-fit m-auto rounded-lg dark:bg-white dark:text-darkGrey">Today</p>
 			</div>
-			<div v-for="message in mainStore.messages[chatID]" :key="message.msgText" class="day-chat flex flex-col space-y-4">
+			<div v-for="message in mainStore.getMessagesById(chatID)" :key="message._id" class="day-chat flex flex-col space-y-4">
 				<div class="space-y-1" :class="{ messageSent: !message.selfSend, messageRecieved: message.selfSend }">
 					<p class="text-left self-start leading-8">
-						{{ message.msgText }}
+						{{ message.text }}
 					</p>
-					<p class="text-right self-end text-xs">8:11 PM</p>
+					<p class="text-right self-end text-xs">{{ timeStampToTime(message.date) }}</p>
 				</div>
 			</div>
 		</div>
@@ -63,7 +63,7 @@
 
 			// Update Header Title
 			if (chatID !== "nochats") {
-				let chatUserInfo = mainStore.getChats.filter((el) => el.id == chatID)[0];
+				let chatUserInfo = mainStore.getChats[chatID];
 				if (chatUserInfo) {
 					mainStore.updateCurrentChat({ name: chatUserInfo.name, profilePic: chatUserInfo.profilePic });
 				}
@@ -72,10 +72,15 @@
 			// Sending A Message By Emiting it throught SocketIo from the server
 			let msgText = ref("");
 			function sendMessage() {
-				if (msgText.value !== "") socket.emit("send-msg", chatID, msgText.value);
+				if (msgText.value !== "") socket.emit("send-msg", chatID, msgText.value, Date.now());
 			}
 
-			return { chatID, mainStore, msgText, sendMessage };
+			// Function to convert timestamp hour
+			const timeStampToTime = (stamp) => {
+				return new Date(stamp).toLocaleTimeString([], { timeStyle: "short" });
+			};
+
+			return { chatID, mainStore, msgText, sendMessage, timeStampToTime };
 		},
 	};
 </script>

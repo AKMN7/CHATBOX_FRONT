@@ -22,13 +22,16 @@ export const useAuthStore = defineStore("auth", {
 			// Main Store to fetch user data
 			const store = useMainStore();
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/signin";
 
+			// Format the data to send
 			const data = {
 				email: payload.email,
 				password: payload.password,
 			};
 
+			// Send HTTP Request
 			const response = await axios.post(EndPoint, data).catch(function (error) {
 				console.log(error);
 				throw new Error(error.response.data.msg);
@@ -46,16 +49,18 @@ export const useAuthStore = defineStore("auth", {
 			localStorage.setItem("name", this.name);
 			localStorage.setItem("profilePic", this.profilePic);
 
-			//Todo Get Data (Chats and onpen websockets)
-			await store.fetchUserData(); //TODO => REPLACE WITH GET DATA
+			// Get User's Data
+			await store.fetchUserData();
 		},
 
 		async signUp(payload) {
 			// Main Store to fetch user data
 			const store = useMainStore();
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/signup";
 
+			// Format the data to send
 			const data = {
 				name: payload.name,
 				email: payload.email,
@@ -63,18 +68,20 @@ export const useAuthStore = defineStore("auth", {
 				passwordConfirm: payload.passwordConfirm,
 			};
 
+			// Send HTTP Request
 			const response = await axios.post(EndPoint, data).catch(function (error) {
 				console.log(error);
 				throw new Error(error.response.data.msg);
 			});
 
+			// Set User Data
 			this.token = response.data.token;
 			this.email = response.data.data.user.email;
 			this.name = response.data.data.user.name;
 			this.profilePic = response.data.data.user.profilePic;
 
-			//Todo Get Data (Chats and onpen websockets)
-			await store.fetchUserData(); //TODO => REPLACE WITH GET DATA
+			// Get User's Data
+			await store.fetchUserData();
 		},
 
 		async googleAuth(payload) {
@@ -84,6 +91,7 @@ export const useAuthStore = defineStore("auth", {
 			// API END POINT
 			const googleAuthGateAway = API + "/users/google";
 
+			// Send HTTP Request
 			const response = await axios
 				.post(googleAuthGateAway, { token: payload.token, type: payload.type })
 				.catch(function (error) {
@@ -103,8 +111,7 @@ export const useAuthStore = defineStore("auth", {
 			localStorage.setItem("name", this.name);
 			localStorage.setItem("profilePic", this.profilePic);
 
-			// Fetch New data
-			//Todo Get Data (Chats and onpen websockets)
+			// Get User's Data
 			await store.fetchUserData(); //TODO => REPLACE WITH GET DATA
 
 			if (payload.type === "SignUp") return response.data.specialMSG;
@@ -122,6 +129,7 @@ export const useAuthStore = defineStore("auth", {
 			this.name = null;
 			this.profilePic = null;
 
+			// Rest Store
 			store.resetStore();
 		},
 

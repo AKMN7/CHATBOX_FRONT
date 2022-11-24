@@ -7,29 +7,31 @@ const API = "http://localhost:3000/api/v1";
 export const useMainStore = defineStore("main", {
 	state: () => {
 		return {
-			chats: [],
+			chats: {},
 			invites: [],
-			messages: [],
 			unReadMessages: [],
 			currentChat: null,
 		};
 	},
 	getters: {
 		getChats: (state) => state.chats,
-		getInvites: (state) => state.invites,
-		getMessagesById: (state) => {
-			return (id) => state.messages[id];
-		},
+		getFirstChat: (state) => Object.keys(state.chats)[0],
 		getChatsById: (state) => {
-			return (id) => state.chats.find((el) => el.id == id);
+			return (id) => state.chats[id];
 		},
+		getMessagesById: (state) => {
+			return (id) => (state.chats[id] ? state.chats[id].messages : []);
+		},
+		getInvites: (state) => state.invites,
 	},
 	actions: {
 		async fetchUserData() {
-			// Fetch All Data -> chats & invites & currentChat
+			// Fetch All Data
 			await Promise.all([this.fetchChats(), this.fetchInvites()]).catch(function (error) {
-				throw new Error(error.response.data.msg);
+				throw new Error(error);
 			});
+
+			// Update the Current Chat the first user chat
 			this.updateCurrentChat(this.chats[0] ? this.chats[0] : { name: "No Chats", profilePic: "----" });
 
 			console.log("*** USER DATA ***");
@@ -42,6 +44,7 @@ export const useMainStore = defineStore("main", {
 			const authStore = useAuthStore();
 			const token = authStore.token;
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/getChats";
 
 			// Send HTTP Get Reques
@@ -53,9 +56,8 @@ export const useMainStore = defineStore("main", {
 			this.chats = response.data.data.chats;
 
 			// Set the messages and unReadMessages stauts for chats
-			this.chats.forEach((el) => {
-				el.isOnline = false;
-				this.messages[el.id] = [];
+			Object.keys(this.chats).forEach((el) => {
+				this.chats[el].isOnline = false;
 				this.unReadMessages[el.id] = false;
 			});
 		},
@@ -65,6 +67,7 @@ export const useMainStore = defineStore("main", {
 			const authStore = useAuthStore();
 			const token = authStore.token;
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/deleteChat/" + payload;
 
 			// Send HTTP Post Reques
@@ -72,8 +75,13 @@ export const useMainStore = defineStore("main", {
 				throw new Error(error.response.data.msg);
 			});
 
-			// Fetch New Chats Array
-			await this.fetchChats();
+			// Delete Chat
+			this.deleteChatById(payload);
+		},
+
+		// Function to delete a chat based on it's id
+		deleteChatById(id) {
+			delete this.chats[id];
 		},
 
 		async fetchInvites() {
@@ -81,6 +89,7 @@ export const useMainStore = defineStore("main", {
 			const authStore = useAuthStore();
 			const token = authStore.token;
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/getInvites";
 
 			// Send HTTP Get Reques
@@ -88,6 +97,7 @@ export const useMainStore = defineStore("main", {
 				throw new Error(error.response.data.msg);
 			});
 
+			// Set Invites
 			this.invites = response.data.data.invites;
 		},
 
@@ -96,6 +106,7 @@ export const useMainStore = defineStore("main", {
 			const authStore = useAuthStore();
 			const token = authStore.token;
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/createInvite";
 
 			const data = {
@@ -116,8 +127,10 @@ export const useMainStore = defineStore("main", {
 			const authStore = useAuthStore();
 			const token = authStore.token;
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/updateInvite";
 
+			// Format Data to send
 			const data = {
 				inviteID: payload.id,
 				newStatus: payload.status,
@@ -137,6 +150,7 @@ export const useMainStore = defineStore("main", {
 			const authStore = useAuthStore();
 			const token = authStore.token;
 
+			// Set URL EndPoint
 			const EndPoint = API + "/users/deleteInvite";
 
 			// Send HTTP Post Reques
@@ -150,6 +164,7 @@ export const useMainStore = defineStore("main", {
 			await this.fetchInvites();
 		},
 
+		// Update the current chat
 		updateCurrentChat(payload) {
 			this.currentChat = {
 				name: payload.name,
@@ -157,9 +172,11 @@ export const useMainStore = defineStore("main", {
 			};
 		},
 
+		// Rest The whole store
 		resetStore() {
 			this.invites = [];
 			this.chats = [];
+			this.unReadMessages = [];
 			this.currentChat = null;
 		},
 	},

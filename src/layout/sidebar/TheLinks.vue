@@ -8,20 +8,20 @@
 		</div>
 
 		<div class="my-4 w-full">
-			<p class="font-bold tracking-wider my-2">Contacts ({{ chats.length }})</p>
+			<p class="font-bold tracking-wider my-2">Contacts ({{ Object.keys(chats).length }})</p>
 			<div class="link-list">
 				<router-link
-					v-for="chat in chats"
-					:key="chat.id"
-					:to="`/app/${chat.id}`"
+					v-for="chatID in Object.keys(chats)"
+					:key="chatID"
+					:to="`/app/${chatID}`"
 					class="sideBarLink flex items-center py-2 px-3 mb-2 mr-2 cursor-pointer rounded-lg text-lightestGrey hover:bg-black hover:text-white">
 					<div class="relative h-10 w-10 mr-4">
-						<img :src="chat.profilePic" alt="user" class="h-9 w-9 rounded-lg" />
-						<span class="online" v-if="store.getChatsById(chat.id).isOnline"></span>
+						<img :src="chats[chatID].profilePic" alt="user" class="h-9 w-9 rounded-lg" />
+						<span class="online" v-if="chats[chatID].isOnline"></span>
 					</div>
-					<p class="tracking-wide mr-auto">{{ chat.name }}</p>
-					<span class="material-icons hidden" title="Delete" @click="deleteChat(chat.id)">delete</span>
-					<span class="newMessages" v-if="store.unReadMessages[chat.id]"></span>
+					<p class="tracking-wide mr-auto">{{ chats[chatID].name }}</p>
+					<span class="material-icons hidden" title="Delete" @click="deleteChat(chatID)">delete</span>
+					<span class="newMessages" v-if="store.unReadMessages[chatID]"></span>
 				</router-link>
 			</div>
 		</div>
@@ -40,6 +40,7 @@
 	import toaster from "../../utils/toast";
 	import { useRouter } from "vue-router";
 	import { inject } from "vue";
+	import socket from "../../utils/socket";
 
 	export default {
 		props: ["chats"],
@@ -63,13 +64,14 @@
 			async function deleteChat(id) {
 				console.log(id);
 				swal
-					.fire(toaster.confirmPopUpOptions("Delete Contact", "Are you sure you want to delete this contact?"))
+					.fire(toaster.confirmPopUpOptions("Remove Contact", `Are you sure you want to remove ${store.chats[id].name}?`))
 					.then(async (result) => {
 						if (result.isConfirmed) {
 							try {
 								await store.deleteChat(id);
 								toaster.fireToast(swal, true, "Contact Deleted Succssfully");
-								let toChat = store.getChats.length ? store.getChats[0].id : "nochats";
+								socket.emit("chat-deleted", id);
+								let toChat = store.getFirstChat ? store.getFirstChat : "nochats";
 								router.replace(`/app/${toChat}`);
 							} catch (error) {
 								toaster.fireToast(swal, false, error.message);
