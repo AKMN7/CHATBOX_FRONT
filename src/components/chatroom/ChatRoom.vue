@@ -67,6 +67,11 @@
 				if (chatUserInfo) {
 					mainStore.updateCurrentChat({ name: chatUserInfo.name, profilePic: chatUserInfo.profilePic });
 				}
+			} else {
+				mainStore.updateCurrentChat({
+					name: "No Chats",
+					profilePic: "https://ui-avatars.com/api/?name=No+Chats&size=128&background=random",
+				});
 			}
 
 			// Sending A Message By Emiting it throught SocketIo from the server

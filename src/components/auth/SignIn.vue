@@ -54,12 +54,9 @@
 
 <script>
 	import { useAuthStore } from "../../stores/auth";
-	import { useRouter } from "vue-router";
 	import { ref, inject } from "vue";
-	import toaster from "../../utils/toast";
 	import GoogleSVG from "../../assets/googleSVG.vue";
-	import socket from "../../utils/socket";
-	import { useMainStore } from "../../stores/main";
+	import userAuth from "../../utils/userAuth";
 
 	export default {
 		components: {
@@ -67,8 +64,6 @@
 		},
 		setup() {
 			const authStore = useAuthStore();
-			const mainStore = useMainStore();
-			const router = useRouter();
 			const swal = inject("$swal");
 
 			let isLoading = ref(false);
@@ -82,46 +77,16 @@
 				};
 
 				isLoading.value = true;
-
-				try {
-					await authStore.signIn(data);
-					toaster.fireToast(swal, true, "Sign In Sucess");
-					// Establish a socket connection
-					socket.disconnect();
-					socket.auth = { token: authStore.token };
-					socket.connect();
-					// Emit Online Status
-					socket.emit("online", mainStore.getChats);
-					setTimeout(() => {
-						let toChat = mainStore.getChats.length ? mainStore.getChats[0].id : "nochats";
-						router.replace(`/app/${toChat}`);
-					}, 2000);
-				} catch (err) {
-					console.log(err);
-					toaster.fireToast(swal, false, err.message);
-				}
-
+				await userAuth(data, authStore.signIn, swal);
 				isLoading.value = false;
 			}
 
 			async function callBack(response) {
 				const data = { token: response.access_token, type: "SignIn" };
-				try {
-					const returnedMSG = await authStore.googleAuth(data);
-					toaster.fireToast(swal, true, returnedMSG || "Sign In Sucess");
-					// Establish a socket connection
-					socket.disconnect();
-					socket.auth = { token: authStore.token };
-					socket.connect();
-					// Emit Online Status
-					socket.emit("online", mainStore.getChats);
-					setTimeout(() => {
-						let toChat = mainStore.getChats.length ? mainStore.getChats[0].id : "nochats";
-						router.replace(`/app/${toChat}`);
-					}, 2000);
-				} catch (err) {
-					toaster.fireToast(swal, false, err.message);
-				}
+
+				isLoading.value = true;
+				await userAuth(data, authStore.googleAuth, swal);
+				isLoading.value = false;
 			}
 
 			return { signIn, callBack, email, password, isLoading };

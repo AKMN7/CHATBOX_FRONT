@@ -56,10 +56,9 @@
 
 <script>
 	import { useAuthStore } from "../../stores/auth";
-	import { useRouter } from "vue-router";
 	import { ref, inject } from "vue";
-	import toaster from "../../utils/toast";
 	import GoogleSVG from "../../assets/googleSVG.vue";
+	import userAuth from "../../utils/userAuth";
 
 	export default {
 		components: {
@@ -67,7 +66,6 @@
 		},
 		setup() {
 			const authStore = useAuthStore();
-			const router = useRouter();
 			const swal = inject("$swal");
 
 			let isLoading = ref(false);
@@ -85,39 +83,16 @@
 				};
 
 				isLoading.value = true;
-
-				try {
-					await authStore.signUp(data);
-					toaster.fireToast(swal, true, "Sign Up Sucess");
-					// Establish a socket connection
-					socket.disconnect();
-					socket.auth = { token: authStore.token };
-					socket.connect();
-					setTimeout(() => {
-						router.replace(`/app/nochats`);
-					}, 2000);
-				} catch (err) {
-					toaster.fireToast(swal, false, err.message);
-				}
-
+				await userAuth(data, authStore.signUp, swal);
 				isLoading.value = false;
 			}
 
 			async function callBack(response) {
 				const data = { token: response.access_token, type: "SignUp" };
-				try {
-					const returnedMSG = await authStore.googleAuth(data);
-					toaster.fireToast(swal, true, returnedMSG);
-					// Establish a socket connection
-					socket.disconnect();
-					socket.auth = { token: authStore.token };
-					socket.connect();
-					setTimeout(() => {
-						router.replace(`/app/nochats`);
-					}, 2000);
-				} catch (err) {
-					toaster.fireToast(swal, false, err.message);
-				}
+
+				isLoading.value = true;
+				await userAuth(data, authStore.googleAuth, swal);
+				isLoading.value = false;
 			}
 
 			return { signUp, callBack, name, email, password, passowrdC, isLoading };

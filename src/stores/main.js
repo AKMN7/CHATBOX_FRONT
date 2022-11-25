@@ -32,7 +32,11 @@ export const useMainStore = defineStore("main", {
 			});
 
 			// Update the Current Chat the first user chat
-			this.updateCurrentChat(this.chats[0] ? this.chats[0] : { name: "No Chats", profilePic: "----" });
+			this.updateCurrentChat(
+				this.chats[0]
+					? this.chats[0]
+					: { name: "No Chats", profilePic: "https://ui-avatars.com/api/?name=No+Chats&size=128&background=random" }
+			);
 
 			console.log("*** USER DATA ***");
 			console.log("chats ->", this.chats);
