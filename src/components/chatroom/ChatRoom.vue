@@ -5,29 +5,18 @@
 	</div>
 	<div v-else class="chat-room">
 		<div class="chat-list">
-			<!-- <div class="mx-2 my-6 text-center">
-				<p class="px-2 py-1 bg-darkGrey text-white text-sm w-fit m-auto rounded-lg dark:bg-white dark:text-darkGrey">
-					Nov 9, 2022
-				</p>
-			</div>
-			<div class="day-chat flex flex-col space-y-4">
-				<div class="messageSent space-y-1">
-					<p class="text-left self-start leading-8">Lorem ipsum dolor, sit amet consectetur adipisicing elit.</p>
-					<p class="text-right self-end text-xs">8:11 PM</p>
-				</div>
-				<div class="messageRecieved space-y-1">
-					<p class="text-left self-start leading-8">
-						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Unde repellat aut, sequi voluptate maiores quis odio non cum
-						corporis, quas distinctio hic? Necessitatibus, dolore saepe? Ab vitae veritatis quaerat error?
+			<div v-for="msgGroup in Object.keys(chatMessages)" :key="msgGroup" class="day-chat flex flex-col space-y-4">
+				<div class="mx-2 my-6 text-center">
+					<p class="px-2 py-1 bg-darkGrey text-white text-sm w-fit m-auto rounded-lg dark:bg-white dark:text-darkGrey">
+						{{ checkIfTodayOrYesterday(msgGroup) }}
 					</p>
-					<p class="text-right self-end text-xs">8:38 PM</p>
 				</div>
-			</div> -->
-			<div class="mx-2 my-6 text-center">
-				<p class="px-2 py-1 bg-darkGrey text-white text-sm w-fit m-auto rounded-lg dark:bg-white dark:text-darkGrey">Today</p>
-			</div>
-			<div v-for="message in mainStore.getMessagesById(chatID)" :key="message._id" class="day-chat flex flex-col space-y-4">
-				<div class="space-y-1" :class="{ messageSent: !message.selfSend, messageRecieved: message.selfSend }">
+
+				<div
+					v-for="message in chatMessages[msgGroup]"
+					:key="message._id"
+					class="space-y-1"
+					:class="{ messageSent: !message.selfSend, messageRecieved: message.selfSend }">
 					<p class="text-left self-start leading-8">
 						{{ message.text }}
 					</p>
@@ -53,6 +42,8 @@
 	import { useRoute } from "vue-router";
 	import { useMainStore } from "../../stores/main";
 	import socket from "../../utils/socket";
+	import { computed } from "@vue/runtime-core";
+	import { timeStampToDate, timeStampToTime, checkIfTodayOrYesterday } from "../../utils/dateHelper.js";
 	export default {
 		setup() {
 			const mainStore = useMainStore();
@@ -80,12 +71,23 @@
 				if (msgText.value !== "") socket.emit("send-msg", chatID, msgText.value, Date.now());
 			}
 
-			// Function to convert timestamp hour
-			const timeStampToTime = (stamp) => {
-				return new Date(stamp).toLocaleTimeString([], { timeStyle: "short" });
-			};
+			// A Computed property that groups messages based on the date
+			const chatMessages = computed(() => {
+				let messages = [];
 
-			return { chatID, mainStore, msgText, sendMessage, timeStampToTime };
+				mainStore.getMessagesById(chatID).forEach((el) => {
+					let messageDate = timeStampToDate(el.date);
+					if (messages[messageDate]) {
+						messages[messageDate].push(el);
+					} else {
+						messages[messageDate] = [el];
+					}
+				});
+
+				return messages;
+			});
+
+			return { chatID, msgText, sendMessage, timeStampToTime, checkIfTodayOrYesterday, chatMessages };
 		},
 	};
 </script>

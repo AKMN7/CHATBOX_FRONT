@@ -32,9 +32,9 @@ const router = createRouter({
 //Function called before the user enter each route (page)
 router.beforeEach(function (to, _, next) {
 	const store = useAuthStore();
-	console.log("Attempt to access URL is Unauthorized!");
 	// Redirect user to sign in page if not authenticated
 	if (to.meta.requiresAuth && !store.isAuthenticated) {
+		console.log("Attempt to access URL is Unauthorized!");
 		next("/signin");
 	} else {
 		next();
