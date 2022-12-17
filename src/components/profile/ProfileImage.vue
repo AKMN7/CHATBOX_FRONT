@@ -1,6 +1,6 @@
 <template>
 	<div class="profile-img w-48 h-48 overflow-hidden rounded-full relative md:mr-4">
-		<input type="file" accept="image/*" ref="file" @change="onFileSelected" class="hidden" />
+		<input type="file" accept="image/*" ref="file" @change="onFileSelected" class="hidden" name="profilePic" />
 		<img :src="selectedFile" alt="Cryptcize" class="h-full w-full object-cover object-top" />
 		<div class="edit__button" @click="browse">
 			<button class="browse">
@@ -11,6 +11,8 @@
 </template>
 
 <script>
+	import { mapStores } from "pinia";
+	import { useMainStore } from "../../stores/main";
 	export default {
 		props: ["userImage"],
 		data() {
@@ -26,21 +28,28 @@
 					"https://cahsi.utep.edu/wp-content/uploads/kisspng-computer-icons-user-clip-art-user-5abf13db5624e4.1771742215224718993529.png";
 			}
 		},
+		computed: {
+			...mapStores(useMainStore),
+		},
 		methods: {
-			onFileSelected(event) {
+			async onFileSelected(event) {
 				this.selectedFile = event.target.files[0];
+
 				const fd = new FormData();
-				fd.append("userImage", this.selectedFile);
-
-				//console.log("Image ->", fd.get("userImage"));
-
-				//! fd should be passed as the data to a post route to the backend
+				fd.append("profilePic", this.selectedFile);
 
 				let reader = new FileReader();
 				reader.readAsDataURL(this.selectedFile);
 				reader.onload = (e) => {
 					this.selectedFile = e.target.result;
 				};
+
+				try {
+					// Send Image to the backend
+					await this.mainStore.uploadProfilePhoto(fd);
+				} catch (error) {
+					console.log("IMAGE ERROR", error);
+				}
 			},
 			browse() {
 				this.$refs.file.click();

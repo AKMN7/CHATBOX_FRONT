@@ -152,5 +152,11 @@ export const useAuthStore = defineStore("auth", {
 
 			return false;
 		},
+
+		// Update the user image localy
+		updateUserImage(payload) {
+			localStorage.setItem("profilePic", payload);
+			this.profilePic = payload;
+		},
 	},
 });

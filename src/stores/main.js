@@ -168,6 +168,25 @@ export const useMainStore = defineStore("main", {
 			await this.fetchInvites();
 		},
 
+		// Upload user photo
+		async uploadProfilePhoto(payload) {
+			//Get Token
+			const authStore = useAuthStore();
+			const token = authStore.token;
+
+			// Set URL EndPoint
+			const EndPoint = API + "/users/uploadProfilePic";
+
+			// Send HTTP Post Reques
+			const response = await axios
+				.post(EndPoint, payload, { headers: { Authorization: `Bearer ${token}` } })
+				.catch(function (error) {
+					throw new Error(error.response.data.msg);
+				});
+
+			authStore.updateUserImage(response.data.newImage);
+		},
+
 		// Update the current chat
 		updateCurrentChat(payload) {
 			this.currentChat = {
