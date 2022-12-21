@@ -68,7 +68,10 @@
 			// Sending A Message By Emiting it throught SocketIo from the server
 			let msgText = ref("");
 			function sendMessage() {
-				if (msgText.value !== "") socket.emit("send-msg", chatID, msgText.value, Date.now());
+				if (msgText.value !== "") {
+					socket.emit("send-msg", chatID, msgText.value, Date.now());
+					msgText.value = "";
+				}
 			}
 
 			// A Computed property that groups messages based on the date
